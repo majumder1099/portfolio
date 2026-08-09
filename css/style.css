@@ -587,3 +587,14 @@
 .copy a {
   color: #2ab7dc;
 }
+
+
+
+
+
+@media (max-width: 480px) {
+ html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+}
