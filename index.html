@@ -32,6 +32,69 @@
         <!-- Template Stylesheet -->
         <link href="css/style.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+        <!-- 
+  ============================================================
+  এই পুরো ব্লকটা কপি করে আপনার index.html-এর </head>-এর 
+  ঠিক আগে বসিয়ে দিন। শুধু <header> section-এই effect দেখাবে,
+  বাকি page-এ কোনো প্রভাব পড়বে না। কোনো class বসাতে হবে না।
+  ============================================================
+-->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const header = document.querySelector('header');
+  if(!header) return; // header ট্যাগ না পেলে কিছুই হবে না
+
+  /* header-এ প্রয়োজনীয় base style বসিয়ে দেওয়া (আগে থেকে না থাকলে) */
+  const computed = window.getComputedStyle(header);
+  if(computed.position === 'static'){
+    header.style.position = 'relative';
+  }
+  header.style.overflow = 'hidden';
+
+  /* spotlight glow div তৈরি করে header-এর ভেতরে বসানো */
+  const glow = document.createElement('div');
+  glow.id = 'headerSpotlight';
+  glow.style.position = 'absolute';
+  glow.style.top = '0';
+  glow.style.left = '0';
+  glow.style.width = '100%';
+  glow.style.height = '100%';
+  glow.style.pointerEvents = 'none';
+  glow.style.zIndex = '1';
+  glow.style.background = 'radial-gradient(circle 280px at 50% 50%, rgba(42,183,220,0.18), transparent 70%)';
+  glow.style.transition = 'background 0.15s ease-out';
+  header.appendChild(glow);
+
+  /* header-এর বাকি সব content যেন glow-এর উপরে থাকে (z-index) */
+  Array.from(header.children).forEach(child => {
+    if(child !== glow){
+      const childComputed = window.getComputedStyle(child);
+      if(childComputed.position === 'static'){
+        child.style.position = 'relative';
+      }
+      if(!child.style.zIndex){
+        child.style.zIndex = '2';
+      }
+    }
+  });
+
+  /* মাউস move করলে glow-এর position আপডেট হবে */
+  header.addEventListener('mousemove', function(e){
+    const rect = header.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    glow.style.background =
+      'radial-gradient(circle 280px at ' + x + 'px ' + y + 'px, rgba(42,183,220,0.22), transparent 70%)';
+  });
+
+  /* মাউস header ছেড়ে চলে গেলে glow মাঝখানে ফিরে যাবে, হালকা fade */
+  header.addEventListener('mouseleave', function(){
+    glow.style.background = 'radial-gradient(circle 280px at 50% 50%, rgba(42,183,220,0.08), transparent 70%)';
+  });
+
+});
+</script>
  
 <!-- <script>
 document.addEventListener('DOMContentLoaded', function(){
