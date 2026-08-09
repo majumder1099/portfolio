@@ -597,5 +597,5 @@
   overflow-x: hidden;
   max-width: 100%;
 }
-.about{ padding: 0 0 0 0;}
+.about{ padding: 0 0 0 0 !important;}
 }
