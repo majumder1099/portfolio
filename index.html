@@ -34,8 +34,186 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
 
- 
+ <!-- 
+  ============================================================
+  এই পুরো ব্লকটা কপি করে আপনার index.html-এর </head>-এর 
+  ঠিক আগে বসিয়ে দিন। শুধু <header>-এর ভেতরে একটা mini
+  "code editor" window বসিয়ে দেবে, যেখানে কোড নিজে থেকেই
+  টাইপ হবে। কোনো class/div বসাতে হবে না।
+  ============================================================
+-->
 <script>
+document.addEventListener('DOMContentLoaded', function(){
+
+  const header = document.querySelector('header');
+  if(!header) return;
+
+  const computed = window.getComputedStyle(header);
+  if(computed.position === 'static'){
+    header.style.position = 'relative';
+  }
+
+  /* ---------- style injection ---------- */
+  const style = document.createElement('style');
+  style.textContent = `
+    #devCodeWindow{
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 320px;
+      max-width: 85vw;
+      background: rgba(20, 26, 33, 0.92);
+      border-radius: 10px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+      z-index: 6;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    #devCodeWindow .cw-topbar{
+      display:flex;
+      align-items:center;
+      gap: 7px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.04);
+    }
+    #devCodeWindow .cw-dot{
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    #devCodeWindow .cw-dot.red{ background:#ff5f56; }
+    #devCodeWindow .cw-dot.yellow{ background:#ffbd2e; }
+    #devCodeWindow .cw-dot.green{ background:#27c93f; }
+    #devCodeWindow .cw-filename{
+      margin-left: 8px;
+      font-size: 11.5px;
+      color: #8a97a3;
+    }
+    #devCodeWindow .cw-body{
+      padding: 16px 18px 20px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #e6e6e6;
+      min-height: 150px;
+      white-space: pre-wrap;
+      text-align: left;
+    }
+    #devCodeWindow .cw-key{ color: #c586c0; }
+    #devCodeWindow .cw-var{ color: #9cdcfe; }
+    #devCodeWindow .cw-str{ color: #ce9178; }
+    #devCodeWindow .cw-prop{ color: #79c0ff; }
+    #devCodeWindow .cw-punc{ color: #d4d4d4; }
+    #devCodeWindow .cw-cursor{
+      display:inline-block;
+      width: 7px;
+      height: 14px;
+      background: #2ab7dc;
+      margin-left: 2px;
+      animation: cwBlink 0.9s step-end infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes cwBlink{
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0; }
+    }
+    @media (max-width: 480px){
+      #devCodeWindow{
+        position: static;
+        margin: 20px auto 0;
+        width: 90%;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  /* ---------- window markup ---------- */
+  const win = document.createElement('div');
+  win.id = 'devCodeWindow';
+  win.innerHTML =
+    '<div class="cw-topbar">' +
+      '<span class="cw-dot red"></span>' +
+      '<span class="cw-dot yellow"></span>' +
+      '<span class="cw-dot green"></span>' +
+      '<span class="cw-filename">developer.js</span>' +
+    '</div>' +
+    '<div class="cw-body" id="cwBody"></div>';
+  header.appendChild(win);
+
+  /* ---------- lines to type, each as array of {text, class} tokens ---------- */
+  const lines = [
+    [{t:'const ',c:'cw-key'},{t:'developer',c:'cw-var'},{t:' = {',c:'cw-punc'}],
+    [{t:'  name',c:'cw-prop'},{t:': ',c:'cw-punc'},{t:'"Somenath Majumder"',c:'cw-str'},{t:',',c:'cw-punc'}],
+    [{t:'  role',c:'cw-prop'},{t:': ',c:'cw-punc'},{t:'"Frontend Developer"',c:'cw-str'},{t:',',c:'cw-punc'}],
+    [{t:'  skills',c:'cw-prop'},{t:': [',c:'cw-punc'},{t:'"HTML"',c:'cw-str'},{t:', ',c:'cw-punc'},{t:'"CSS"',c:'cw-str'},{t:', ',c:'cw-punc'},{t:'"JS"',c:'cw-str'},{t:'],',c:'cw-punc'}],
+    [{t:'  experience',c:'cw-prop'},{t:': ',c:'cw-punc'},{t:'"8+ years"',c:'cw-str'},{t:',',c:'cw-punc'}],
+    [{t:'  available',c:'cw-prop'},{t:': ',c:'cw-punc'},{t:'true',c:'cw-key'}],
+    [{t:'};',c:'cw-punc'}]
+  ];
+
+  const body = document.getElementById('cwBody');
+
+  function renderTokensPartial(tokens, charLimit){
+    let html = '';
+    let remaining = charLimit;
+    for(const tok of tokens){
+      if(remaining <= 0) break;
+      const slice = tok.t.substring(0, remaining);
+      html += '<span class="' + tok.c + '">' + escapeHtml(slice) + '</span>';
+      remaining -= tok.t.length;
+    }
+    return html;
+  }
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function lineFullLength(tokens){
+    return tokens.reduce((sum, tok) => sum + tok.t.length, 0);
+  }
+  function renderFullLine(tokens){
+    return tokens.map(tok => '<span class="' + tok.c + '">' + escapeHtml(tok.t) + '</span>').join('');
+  }
+
+  let currentLine = 0;
+  let currentChar = 0;
+
+  function typeStep(){
+    if(currentLine >= lines.length){
+      // পুরো কোড লেখা শেষ, ২ সেকেন্ড থামুন, তারপর আবার শুরু (loop)
+      setTimeout(function(){
+        body.innerHTML = '';
+        currentLine = 0;
+        currentChar = 0;
+        typeStep();
+      }, 2200);
+      return;
+    }
+
+    const tokens = lines[currentLine];
+    const fullLen = lineFullLength(tokens);
+    currentChar++;
+
+    let html = '';
+    for(let i = 0; i < currentLine; i++){
+      html += renderFullLine(lines[i]) + '\n';
+    }
+    html += renderTokensPartial(tokens, currentChar);
+    html += '<span class="cw-cursor"></span>';
+    body.innerHTML = html;
+
+    if(currentChar >= fullLen){
+      currentLine++;
+      currentChar = 0;
+      setTimeout(typeStep, 250); // লাইন শেষে সামান্য pause
+    } else {
+      setTimeout(typeStep, 28); // typing speed
+    }
+  }
+
+  typeStep();
+
+});
+</script>
+<!-- <script>
 document.addEventListener('DOMContentLoaded', function(){
 
   const canvas = document.createElement('canvas');
@@ -140,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function(){
   targets.forEach(el => observer.observe(el));
 
 });
-</script>
+</script> -->
 </head>
 
 <body>
