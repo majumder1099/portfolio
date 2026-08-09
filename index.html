@@ -33,114 +33,9 @@
         <link href="css/style.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-<script>
-document.addEventListener('DOMContentLoaded', function(){
 
-  /* PART 1: FULL-PAGE PARTICLE NETWORK BACKGROUND */
-  const canvas = document.createElement('canvas');
-  canvas.id = 'autoParticleBg';
-  canvas.style.position = 'fixed';
-  canvas.style.top = '0';
-  canvas.style.left = '0';
-  canvas.style.width = '100vw';
-  canvas.style.height = '100vh';
-  canvas.style.zIndex = '-1';
-  canvas.style.pointerEvents = 'none';
-  document.body.appendChild(canvas);
-
-  const ctx = canvas.getContext('2d');
-  let width, height, particles;
-
-  function resizeCanvas(){
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  const PARTICLE_COUNT = 55;
-  const MAX_DIST = 130;
-
-  function createParticles(){
-    particles = [];
-    for(let i = 0; i < PARTICLE_COUNT; i++){
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: (Math.random() - 0.5) * 0.35
-      });
-    }
-  }
-  createParticles();
-
-  function animateParticles(){
-    ctx.clearRect(0, 0, width, height);
-
-    particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      if(p.x < 0 || p.x > width) p.vx *= -1;
-      if(p.y < 0 || p.y > height) p.vy *= -1;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(42, 183, 220, 0.55)';
-      ctx.fill();
-    });
-
-    for(let i = 0; i < particles.length; i++){
-      for(let j = i + 1; j < particles.length; j++){
-        const dx = particles[i].x - particles[j].x;
-        const dy = particles[i].y - particles[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if(dist < MAX_DIST){
-          ctx.beginPath();
-          ctx.moveTo(particles[i].x, particles[i].y);
-          ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = 'rgba(42, 183, 220, ' + (1 - dist / MAX_DIST) * 0.25 + ')';
-          ctx.lineWidth = 1;
-          ctx.stroke();
-        }
-      }
-    }
-    requestAnimationFrame(animateParticles);
-  }
-  animateParticles();
-
-  /* PART 2: AUTO SCROLL-REVEAL for every <section> */
-  const style = document.createElement('style');
-  style.textContent = `
-    .auto-reveal{
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .auto-reveal.auto-active{
-      opacity: 1;
-      transform: translateY(0);
-    }
-  `;
-  document.head.appendChild(style);
-
-  const targets = document.querySelectorAll('section');
-  targets.forEach(el => el.classList.add('auto-reveal'));
-
-  const observer = new IntersectionObserver(function(entries){
-    entries.forEach(function(entry){
-      if(entry.isIntersecting){
-        entry.target.classList.add('auto-active');
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
-  targets.forEach(el => observer.observe(el));
-
-});
-</script>
  
-<!-- <script>
+<script>
 document.addEventListener('DOMContentLoaded', function(){
 
   const canvas = document.createElement('canvas');
@@ -245,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function(){
   targets.forEach(el => observer.observe(el));
 
 });
-</script> -->
+</script>
 </head>
 
 <body>
