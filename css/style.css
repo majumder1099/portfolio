@@ -445,10 +445,10 @@
   color: #2ab7dc;
 }
 
+.experience .border-start{display: flex;flex-direction: column-reverse;}
 
 
 
-}
 
 .filters button:hover {
   color: #f4f6f8;
